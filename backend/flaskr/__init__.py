@@ -106,16 +106,33 @@ def create_app(test_config=None):
         new_answer = body.get("answer", None)
         new_difficulty = body.get("difficulty", None)
         new_category = body.get("category", None)
+        new_search_term = body.get("searchTerm", None)
 
         try:
-            question = Question(question=new_question, answer=new_answer, difficulty=new_difficulty, category=new_category)
-            question.insert()
+            if new_search_term:
+                questions = Question.query.order_by(Question.id).filter(Question.question.ilike("%{}%".format(new_search_term)))
 
-            return jsonify({
-                'success':True
-            })
-            
-        except:
+                current_questions =  paginate_questions(request, questions)
+
+                quiz = current_questions[0]['category']
+                current_category = Category.query.filter(Category.id == quiz).one_or_none()
+
+                return jsonify({
+                    'questions': current_questions,
+                    'total_questions': len(questions.all()),
+                    'current_category': current_category.type
+                })
+
+            else:
+                question = Question(question=new_question, answer=new_answer, difficulty=new_difficulty, category=new_category)
+                question.insert()
+
+                return jsonify({
+                    'success':True
+                })
+
+        except Exception as e:
+            print(e)
             abort(422)
 
 
