@@ -81,14 +81,6 @@ def create_app(test_config=None):
 
         })
 
-    """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
-
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
-
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         question = Question.query.filter(Question.id == question_id).one_or_none()
@@ -139,27 +131,21 @@ def create_app(test_config=None):
             print(e)
             abort(422)
 
+    @app.route('/categories/<int:category_id>/questions')
+    def get_category_questions(category_id):
+        questions = Question.query.order_by(Question.id).filter(Question.category == category_id)
 
+        current_questions = paginate_questions(request, questions)
+        if len(current_questions) == 0:
+            abort(404)
+        current_category = Category.query.filter(Category.id == category_id).one_or_none()
 
-    """
-    @TODO:
-    Create a POST endpoint to get questions based on a search term.
-    It should return any questions for whom the search term
-    is a substring of the question.
-
-    TEST: Search by any phrase. The questions list will update to include
-    only question that include that string within their question.
-    Try using the word "title" to start.
-    """
-
-    """
-    @TODO:
-    Create a GET endpoint to get questions based on category.
-
-    TEST: In the "List" tab / main screen, clicking on one of the
-    categories in the left column will cause only questions of that
-    category to be shown.
-    """
+        return jsonify({
+            'questions': current_questions,
+            'total_questions': len(questions.all()),
+            'current_category': current_category.type
+        })
+        
 
     """
     @TODO:
