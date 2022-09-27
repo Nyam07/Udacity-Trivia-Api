@@ -74,17 +74,17 @@ def create_app(test_config=None):
             my_categories = format_categories()
 
             if len(my_categories) == 0:
-                abort(400)
-
+                abort(404)
+          
             return jsonify({
                 'questions': current_questions,
                 'total_questions': len(all_questions),
                 'categories': my_categories,
-                'currentCategory': my_categories[0]
+                'currentCategory': my_categories[1]
 
             })
         except Exception as e:
-            print(e)
+            print("Exception", e)
             abort(400)
 
     # DELETE A QUESTION
@@ -104,7 +104,7 @@ def create_app(test_config=None):
             })
         except Exception as e:
             print(e)
-            abort(400)
+            abort(404)
 
     # ADD NEW QUESTION AND SEARCH FOR A QUESTION
     @app.route('/questions', methods=['POST'])
@@ -141,23 +141,27 @@ def create_app(test_config=None):
 
         except Exception as e:
             print(e)
-            abort(422)
+            abort(404)
 
     # GET QUESTIONS BY CATEGORY
     @app.route('/categories/<int:category_id>/questions')
     def get_category_questions(category_id):
-        questions = Question.query.order_by(Question.id).filter(Question.category == category_id)
+        try:
+            questions = Question.query.order_by(Question.id).filter(Question.category == category_id)
 
-        current_questions = paginate_questions(request, questions)
-        if len(current_questions) == 0:
+            current_questions = paginate_questions(request, questions)
+            if len(current_questions) == 0:
+                abort(404)
+            current_category = Category.query.filter(Category.id == category_id).one_or_none()
+
+            return jsonify({
+                'questions': current_questions,
+                'total_questions': len(questions.all()),
+                'current_category': current_category.type
+            })
+        except Exception as e:
+            print(e)
             abort(404)
-        current_category = Category.query.filter(Category.id == category_id).one_or_none()
-
-        return jsonify({
-            'questions': current_questions,
-            'total_questions': len(questions.all()),
-            'current_category': current_category.type
-        })
         
     # PLAY THE QUIZ GAME
     @app.route('/quizzes', methods=['POST'])
@@ -181,11 +185,8 @@ def create_app(test_config=None):
             print(e)
             abort(400)
 
-    """
-    @TODO:
-    Create error handlers for all expected errors
-    including 404 and 422.
-    """
+
+
 
     # ERROR HANDLERS
     @app.errorhandler(404)
