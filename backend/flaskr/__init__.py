@@ -47,6 +47,7 @@ def create_app(test_config=None):
 
         return response
 
+    # GET ALL CATEGORIES
     @app.route('/categories')
     def get_categories():
 
@@ -59,6 +60,7 @@ def create_app(test_config=None):
             'categories':my_categories
         })
 
+    # GET ALL QUESTIONS
     @app.route('/questions')
     def get_questions():
         all_questions = Question.query.order_by(Question.id).all()
@@ -77,10 +79,11 @@ def create_app(test_config=None):
             'questions': current_questions,
             'total_questions': len(all_questions),
             'categories': my_categories,
-            'currentCategory': my_categories[4],
+            'currentCategory': my_categories[0]
 
         })
 
+    # DELETE A QUESTION
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         question = Question.query.filter(Question.id == question_id).one_or_none()
@@ -95,6 +98,7 @@ def create_app(test_config=None):
             'deleted_question': question_id
         })
 
+    # ADD NEW QUESTION AND SEARCH FOR A QUESTION
     @app.route('/questions', methods=['POST'])
     def add_question():
         body = request.get_json()
@@ -131,6 +135,7 @@ def create_app(test_config=None):
             print(e)
             abort(422)
 
+    # GET QUESTIONS BY CATEGORY
     @app.route('/categories/<int:category_id>/questions')
     def get_category_questions(category_id):
         questions = Question.query.order_by(Question.id).filter(Question.category == category_id)
@@ -146,18 +151,7 @@ def create_app(test_config=None):
             'current_category': current_category.type
         })
         
-
-    """
-    @TODO:
-    Create a POST endpoint to get questions to play the quiz.
-    This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
-    if provided, and that is not one of the previous questions.
-
-    TEST: In the "Play" tab, after a user selects "All" or a category,
-    one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not.
-    """
+    # PLAY THE QUIZ GAME
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
         body = request.get_json()
