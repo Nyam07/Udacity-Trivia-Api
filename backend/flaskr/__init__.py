@@ -19,6 +19,18 @@ def paginate_questions(request, selection):
 
     return current_questions
 
+# Method for formating categories
+def format_categories():
+    all_categories = Category.query.order_by(Category.id).all()
+
+    my_ids = [category.id for category in all_categories]
+    my_types = [category.type for category in all_categories]
+
+    # convert to dict
+    my_categories = dict(zip(my_ids, my_types))
+
+    return my_categories
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -37,13 +49,8 @@ def create_app(test_config=None):
 
     @app.route('/categories')
     def get_categories():
-        all_categories = Category.query.order_by(Category.id).all()
 
-        my_ids = [category.id for category in all_categories]
-        my_types = [category.type for category in all_categories]
-        
-        # convert to dict
-        my_categories = dict(zip(my_ids, my_types))
+        my_categories = format_categories()
 
         if len(my_categories) == 0:
             abort(400)
@@ -61,15 +68,8 @@ def create_app(test_config=None):
         if len(current_questions) == 0:
             abort(404)
 
-        all_categories = Category.query.order_by(Category.id).all()
+        my_categories = format_categories()
 
-        my_ids = [category.id for category in all_categories]
-        my_types = [category.type for category in all_categories]
-
-        # convert to dict
-        my_categories = dict(zip(my_ids, my_types))
-
-        print(my_categories[4])
         if len(my_categories) == 0:
             abort(400)
 
