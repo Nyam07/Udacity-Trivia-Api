@@ -63,40 +63,48 @@ def create_app(test_config=None):
     # GET ALL QUESTIONS
     @app.route('/questions')
     def get_questions():
-        all_questions = Question.query.order_by(Question.id).all()
+        try:
+            all_questions = Question.query.order_by(Question.id).all()
 
-        current_questions = paginate_questions(request, all_questions)
+            current_questions = paginate_questions(request, all_questions)
 
-        if len(current_questions) == 0:
-            abort(404)
+            if len(current_questions) == 0:
+                abort(404)
 
-        my_categories = format_categories()
+            my_categories = format_categories()
 
-        if len(my_categories) == 0:
+            if len(my_categories) == 0:
+                abort(400)
+
+            return jsonify({
+                'questions': current_questions,
+                'total_questions': len(all_questions),
+                'categories': my_categories,
+                'currentCategory': my_categories[0]
+
+            })
+        except Exception as e:
+            print(e)
             abort(400)
-
-        return jsonify({
-            'questions': current_questions,
-            'total_questions': len(all_questions),
-            'categories': my_categories,
-            'currentCategory': my_categories[0]
-
-        })
 
     # DELETE A QUESTION
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
-        question = Question.query.filter(Question.id == question_id).one_or_none()
+        try:
+            question = Question.query.filter(Question.id == question_id).one_or_none()
 
-        if question is None:
-            abort(404)
+            if question is None:
+                abort(404)
 
-        question.delete()
-        
-        return jsonify({
-            'success': True,
-            'deleted_question': question_id
-        })
+            question.delete()
+            
+            return jsonify({
+                'success': True,
+                'deleted_question': question_id
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
 
     # ADD NEW QUESTION AND SEARCH FOR A QUESTION
     @app.route('/questions', methods=['POST'])
@@ -158,23 +166,51 @@ def create_app(test_config=None):
         previous_questions = body.get('previous_questions', None)
         selected_category = body.get('quiz_category', None)
         category_id = selected_category['id']
-        
-        if category_id == 0:
-            questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
-        else:
-            questions = Question.query.filter(Question.id.notin_(previous_questions), Question.category == category_id).all()
+        try:
+            if category_id == 0:
+                questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+            else:
+                questions = Question.query.filter(Question.id.notin_(previous_questions), Question.category == category_id).all()
 
-        question = random.choice(questions)
+            question = random.choice(questions)
 
-        return jsonify({
-            'question':question.format(),
-        })
+            return jsonify({
+                'question':question.format(),
+            })
+        except Exception as e:
+            print(e)
+            abort(400)
 
     """
     @TODO:
     Create error handlers for all expected errors
     including 404 and 422.
     """
+
+    # ERROR HANDLERS
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return jsonify({
+            'success':False,
+            'error': 400,
+            'message':'Page not found'
+        }), 404
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'Bad Request'
+        }), 400
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': 'Unprocessable'
+        }), 422
 
     return app
 
