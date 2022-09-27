@@ -89,16 +89,20 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page.
     """
 
-    """
-    @TODO:
-    Create an endpoint to POST a new question,
-    which will require the question and answer text,
-    category, and difficulty score.
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        question = Question.query.filter(Question.id == question_id).one_or_none()
 
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
-    """
+        if question is None:
+            abort(404)
+
+        question.delete()
+        
+        return jsonify({
+            'success': True,
+            'deleted_question': question_id
+        })
+
     @app.route('/questions', methods=['POST'])
     def add_question():
         body = request.get_json()
