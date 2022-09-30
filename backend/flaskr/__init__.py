@@ -191,6 +191,7 @@ def create_app(test_config=None):
         selected_category = body.get('quiz_category', None)
         category_id = selected_category['id']
         try:
+            # If user selected all
             if category_id == 0:
                 questions = Question.query.filter(
                     Question.id.notin_(previous_questions)).all()
@@ -199,13 +200,19 @@ def create_app(test_config=None):
                     Question.id.notin_(previous_questions),
                     Question.category == category_id).all()
 
-            question = random.choice(questions)
+            # Check if all questions are asked
+            if len(questions) == 0:
+                return jsonify({
+                    'question': None,
+                })
+            else:
+                question = random.choice(questions)
 
-            return jsonify({
-                'question': question.format(),
-            })
+                return jsonify({
+                    'question': question.format(),
+                })
         except Exception as e:
-            print(e)
+            print("ERROR", e)
             abort(400)
 
 
