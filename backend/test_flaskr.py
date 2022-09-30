@@ -25,9 +25,11 @@ class TriviaTestCase(unittest.TestCase):
         self.database_name = os.getenv('DB_NAME', 'trivia_test')
 
         self.database_path = "postgresql://{}:{}@{}/{}".format(
-            self.database_user, self.database_password, self.database_host, self.database_name
-        )
-        
+            self.database_user,
+            self.database_password,
+            self.database_host,
+            self.database_name)
+
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
@@ -35,8 +37,8 @@ class TriviaTestCase(unittest.TestCase):
             self.db = SQLAlchemy()
             self.db.init_app(self.app)
             # create all tables
-            self.db.create_all() 
-    
+            self.db.create_all()
+
     def tearDown(self):
         """Executed after reach test"""
         pass
@@ -45,6 +47,7 @@ class TriviaTestCase(unittest.TestCase):
     TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
+
     def test_get_paginated_questions(self):
         response = self.client().get('/questions')
         data = json.loads(response.data)
@@ -69,7 +72,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(len(data['categories']))
 
-        
     # def test_delete_question(self):
     #     response = self.client().delete('/questions/6')
     #     data = json.loads(response.data)
@@ -85,11 +87,11 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Page not found')
-    
+
     def test_create_new_question(self):
         new_question = {
             'question': 'Who is the president of Kenya',
-            'amswer':'William Ruto',
+            'amswer': 'William Ruto',
             'difficulty': 2,
             'category': 3
         }
@@ -101,7 +103,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_search_question(self):
         search = {'searchTerm': 'what'}
-        response= self.client().post('/questions', json=search)
+        response = self.client().post('/questions', json=search)
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 200)
@@ -139,7 +141,7 @@ class TriviaTestCase(unittest.TestCase):
         quiz = {
             'previous_questions': [13],
             'quiz_category': {
-                'type':'Entertainment',
+                'type': 'Entertainment',
                 'id': 5
             }
         }
@@ -166,7 +168,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'Bad Request')
 
-        
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
