@@ -118,14 +118,15 @@ def create_app(test_config=None):
     # ADD NEW QUESTION AND SEARCH FOR A QUESTION
     @app.route('/questions', methods=['POST'])
     def add_question():
-        body = request.get_json()
-        new_question = body.get("question", None)
-        new_answer = body.get("answer", None)
-        new_difficulty = body.get("difficulty", None)
-        new_category = body.get("category", None)
-        new_search_term = body.get("searchTerm", None)
-
         try:
+            body = request.get_json()
+
+            new_question = body.get("question", None)
+            new_answer = body.get("answer", None)
+            new_difficulty = body.get("difficulty", None)
+            new_category = body.get("category", None)
+            new_search_term = body.get("searchTerm", None)
+
             if new_search_term:
                 questions = Question.query.order_by(
                     Question.id).filter(
@@ -145,16 +146,22 @@ def create_app(test_config=None):
                 })
 
             else:
-                question = Question(
-                    question=new_question,
-                    answer=new_answer,
-                    difficulty=new_difficulty,
-                    category=new_category)
-                question.insert()
 
-                return jsonify({
-                    'success': True
-                })
+                if (len(new_question) == 0) or (len(new_answer) == 0) or (
+                        new_category < 0) or (new_difficulty < 1):
+                    abort(404)
+                else:
+                    question = Question(
+                        question=new_question,
+                        answer=new_answer,
+                        difficulty=new_difficulty,
+                        category=new_category)
+
+                    question.insert()
+
+                    return jsonify({
+                        'success': True
+                    })
 
         except Exception as e:
             print(e)
@@ -186,11 +193,12 @@ def create_app(test_config=None):
     # PLAY THE QUIZ GAME
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
-        body = request.get_json()
-        previous_questions = body.get('previous_questions', None)
-        selected_category = body.get('quiz_category', None)
-        category_id = selected_category['id']
         try:
+            body = request.get_json()
+            previous_questions = body.get('previous_questions', None)
+            selected_category = body.get('quiz_category', None)
+            category_id = selected_category['id']
+
             # If user selected all
             if category_id == 0:
                 questions = Question.query.filter(
@@ -215,16 +223,13 @@ def create_app(test_config=None):
             print("ERROR", e)
             abort(400)
 
-
-
-
     # ERROR HANDLERS
 
     @app.errorhandler(404)
     def page_not_found(error):
         return jsonify({
             'success': False,
-            'error': 400,
+            'error': 404,
             'message': 'Page not found'
         }), 404
 
@@ -244,6 +249,4 @@ def create_app(test_config=None):
             'message': 'Unprocessable'
         }), 422
 
-
     return app
-
