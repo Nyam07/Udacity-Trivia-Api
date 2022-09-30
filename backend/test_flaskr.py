@@ -11,6 +11,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+new_question = {
+    'question': 'Who is the president of Kenya',
+    'amswer': 'William Ruto',
+    'difficulty': 2,
+    'category': 3
+}
+
+
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
 
@@ -72,6 +80,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(len(data['categories']))
 
+    def test_fail_get_categories(self):
+        response = self.client().get('/categories/1000')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Page not found')
+
     # def test_delete_question(self):
     #     response = self.client().delete('/questions/6')
     #     data = json.loads(response.data)
@@ -91,15 +107,30 @@ class TriviaTestCase(unittest.TestCase):
     def test_create_new_question(self):
         new_question = {
             'question': 'Who is the president of Kenya',
-            'amswer': 'William Ruto',
+            'answer': 'William Ruto',
             'difficulty': 2,
             'category': 3
         }
+
         response = self.client().post('/questions', json=new_question)
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['success'], True)
+
+    def test_fail_create_new_question(self):
+        bad_question = {
+            'question': 'Who is the president of Kenya',
+            'category': '1',
+            'answer': '',
+            'difficulty': 1,
+        }
+        response = self.client().post('/questions', json=bad_question)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Page not found')
 
     def test_search_question(self):
         search = {'searchTerm': 'what'}
@@ -161,7 +192,7 @@ class TriviaTestCase(unittest.TestCase):
             }
         }
 
-        response = self.client().post('/quizzes', json=quiz)
+        response = self.client().post('/quizzes', json={})
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 400)
